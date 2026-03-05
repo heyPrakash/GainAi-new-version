@@ -62,7 +62,7 @@ export function FoodScanner() {
                     },
                   },
                   {
-                    text: `Analyze this food image and provide detailed nutritional information. For each food item detected, respond with a JSON array containing objects with these fields: name (string), calories (number), protein (number), carbs (number), fats (number), fiber (number), servingSize (string). Be specific and accurate. Only return the JSON array, nothing else.`,
+                    text: `Analyze this food image and provide detailed nutritional information. For each food item detected, respond with a JSON array containing objects with these fields: name (string), calories (number), protein (number), carbs (number), fats (number), fiber (number), servingSize (string). Be specific and accurate. Respond with ONLY a raw JSON array, no markdown, no code blocks, no explanation.`,
                   },
                 ],
               },
@@ -81,8 +81,9 @@ export function FoodScanner() {
         throw new Error("No response from food analysis")
       }
 
-      const content = data.candidates[0].content.parts[0].text
-      const parsed = JSON.parse(content)
+      const rawText = data.candidates[0].content.parts[0].text
+      const cleanText = rawText.replace(/```json|```/g, "").trim()
+      const parsed = JSON.parse(cleanText)
       setResults(Array.isArray(parsed) ? parsed : [parsed])
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to analyze food"

@@ -66,7 +66,7 @@ export function BodyScanner() {
                     },
                   },
                   {
-                    text: `Analyze this body composition photo and provide fitness insights. Respond with a JSON object containing: bodyFatPercent (estimated number 8-35), category (Athletic/Average/Needs Work), bmi (estimated number 18-30), muscleMass (Above Average/Average/Below Average), recommendations (array of 4 actionable improvement tips), composition (array of 4 objects with label, value, color where labels are Muscle/Fat/Bone/Water and values sum to 100). Only return the JSON object, nothing else.`,
+                    text: `Analyze this body composition photo and provide fitness insights. Respond with a JSON object containing: bodyFatPercent (estimated number 8-35), category (Athletic/Average/Needs Work), bmi (estimated number 18-30), muscleMass (Above Average/Average/Below Average), recommendations (array of 4 actionable improvement tips), composition (array of 4 objects with label, value, color where labels are Muscle/Fat/Bone/Water and values sum to 100). Respond with ONLY a raw JSON object, no markdown, no code blocks, no explanation.`,
                   },
                 ],
               },
@@ -85,8 +85,9 @@ export function BodyScanner() {
         throw new Error("No response from body analysis")
       }
 
-      const content = data.candidates[0].content.parts[0].text
-      const parsed = JSON.parse(content)
+      const rawText = data.candidates[0].content.parts[0].text
+      const cleanText = rawText.replace(/```json|```/g, "").trim()
+      const parsed = JSON.parse(cleanText)
       setResults(parsed)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to analyze body"
