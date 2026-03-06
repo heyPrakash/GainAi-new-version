@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Menu, X } from "lucide-react"
+import { Sun, Moon, Menu, X, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
@@ -18,12 +19,21 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { signOut } = useAuth()
   const [mounted, setMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -70,6 +80,16 @@ export function Navbar() {
               )}
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="rounded-lg"
+            aria-label="Logout"
+            title="Logout"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
