@@ -24,7 +24,7 @@ interface Profile {
 
 interface FoodScan {
   id: string
-  created_at: string
+  scanned_at: string
   total_calories: number
   total_protein: number
   total_carbs: number
@@ -34,7 +34,7 @@ interface FoodScan {
 
 interface BodyScan {
   id: string
-  created_at: string
+  scanned_at: string
   body_fat_percent: number
 }
 
@@ -68,7 +68,7 @@ export function Dashboard() {
           .from('food_scans')
           .select('*')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('scanned_at', { ascending: false })
         
         if (foodError) console.error('Food scans error:', foodError)
         if (foodData) setFoodScans(foodData)
@@ -78,16 +78,16 @@ export function Dashboard() {
           .from('body_scans')
           .select('*')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('scanned_at', { ascending: false })
           .limit(1)
         
         if (bodyError) console.error('Body scan error:', bodyError)
         if (bodyData && bodyData.length > 0) setBodyScan(bodyData[0])
 
         // Calculate today's stats
-        const today = new Date().toISOString()?.split('T')[0] || ''
+        const today = new Date().toISOString()?.split('T')?.[0] || ''
         const todayScans = foodData?.filter(
-          (scan) => scan.created_at?.startsWith(today)
+          (scan) => scan.scanned_at?.startsWith(today)
         ) || []
         const totalCalories = todayScans.reduce((sum, scan) => sum + (scan.total_calories || 0), 0)
         const totalProtein = todayScans.reduce((sum, scan) => sum + (scan.total_protein || 0), 0)
@@ -118,9 +118,9 @@ export function Dashboard() {
   const calPercent = Math.round((todayStats.calories / profile.daily_calories) * 100)
   const proteinPercent = Math.round((todayStats.protein / profile.daily_protein) * 100)
   const initials = profile.full_name
-    .split(' ')
+    ?.split(' ')
     .map((n) => n[0])
-    .join('')
+    .join('') || ''
 
   return (
     <div className='mx-auto max-w-4xl px-4 py-10 lg:px-6'>
@@ -205,10 +205,10 @@ export function Dashboard() {
                       className='flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2'
                     >
                       <span className='text-xs text-muted-foreground'>
-                        {new Date(scan.created_at).toLocaleDateString()}
+                        {scan?.scanned_at ? new Date(scan.scanned_at).toLocaleDateString() : ''}
                       </span>
                       <span className='text-sm font-semibold'>
-                        {scan.total_calories} kcal
+                        {scan?.total_calories ?? 0} kcal
                       </span>
                     </div>
                   ))}
@@ -257,11 +257,11 @@ export function Dashboard() {
                         {scan.foods?.[0]?.name || 'Food Scan'}
                       </p>
                       <p className='text-xs text-muted-foreground'>
-                        {new Date(scan.created_at).toLocaleString()}
+                        {scan?.scanned_at ? new Date(scan.scanned_at).toLocaleString() : ''}
                       </p>
                     </div>
                     <span className='text-sm font-semibold text-foreground'>
-                      {scan.total_calories} kcal
+                      {scan?.total_calories ?? 0} kcal
                     </span>
                   </div>
                 ))
@@ -296,7 +296,7 @@ export function Dashboard() {
                         Last Updated
                       </span>
                       <span className='text-sm font-semibold text-foreground'>
-                        {new Date(bodyScan.created_at).toLocaleDateString()}
+                        {bodyScan?.scanned_at ? new Date(bodyScan.scanned_at).toLocaleDateString() : ''}
                       </span>
                     </div>
                   </div>
@@ -327,10 +327,10 @@ export function Dashboard() {
                     <span className='text-sm font-semibold text-foreground'>
                       {foodScans.length > 0
                         ? Math.round(
-                            foodScans.reduce((sum, s) => sum + s.total_calories, 0) /
+                            foodScans.reduce((sum, s) => sum + (s?.total_calories || 0), 0) /
                               Math.ceil(
                                 (new Date().getTime() -
-                                  new Date(foodScans[foodScans.length - 1].created_at).getTime()) /
+                                  new Date(foodScans[foodScans.length - 1]?.scanned_at ?? '').getTime()) /
                                   (1000 * 60 * 60 * 24) || 1
                               )
                           )
