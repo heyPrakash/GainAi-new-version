@@ -117,19 +117,18 @@ export function BodyScanner() {
     if (!user || !results) return
     setSaved(true)
     try {
+      // log full result object for debugging
+      console.log('Body scan result:', results)
       const now = new Date().toISOString()
-      const insert: any = { user_id: user.id, scanned_at: now }
-      // map body result fields, support both old and new schemas
-      insert.body_fat_percent = results.bodyFatPercent
-      insert.body_fat = results.bodyFatPercent
-      insert.category = results.category
-      insert.bmi = results.bmi
-      insert.muscle_mass = results.muscleMass
-      insert.recommendations = results.recommendations
-      insert.composition = results.composition
-      insert.image_url = image
+      const insertObj: any = {
+        user_id: user.id,
+        body_fat: Number(results.body_fat ?? results.bodyFatPercent ?? results.bodyFat) || 0,
+        notes:
+          results.notes || results.summary || results.analysis || '' ,
+        scanned_at: now,
+      }
 
-      const { error } = await supabase.from('body_scans').insert(insert)
+      const { error } = await supabase.from('body_scans').insert(insertObj)
       if (error) throw error
       setSaveMessage('✅ Saved to Dashboard!')
       router.refresh()
