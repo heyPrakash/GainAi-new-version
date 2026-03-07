@@ -43,13 +43,13 @@ export function ProfileSetup() {
         .from('profiles')
         .insert({
           id: user.id,
-          full_name: formData.fullName,
-          age: formData.age,
-          weight: formData.weight,
-          height: formData.height,
+          name: formData.fullName,
+          age: parseInt(formData.age.toString()),
+          weight: parseFloat(formData.weight.toString()),
+          height: parseFloat(formData.height.toString()),
           goal: formData.goal,
-          daily_calories: formData.dailyCalories,
-          daily_protein: formData.dailyProtein,
+          calorie_goal: parseInt(formData.dailyCalories.toString()),
+          protein_goal: parseInt(formData.dailyProtein.toString()),
         })
 
       if (err) throw err
