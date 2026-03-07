@@ -8,10 +8,13 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   hasProfile: boolean
+  intendedRoute: string | null
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  setIntendedRoute: (route: string | null) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -20,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [hasProfile, setHasProfile] = useState(false)
+  const [intendedRoute, setIntendedRoute] = useState<string | null>(null)
 
   useEffect(() => {
     // Check if user is already logged in
@@ -56,6 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+      },
+    })
+    if (error) throw error
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
@@ -84,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   return (
-    <AuthContext.Provider value={{ user, loading, hasProfile, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, hasProfile, intendedRoute, signUp, signIn, signInWithGoogle, signOut, refreshProfile, setIntendedRoute }}>
       {children}
     </AuthContext.Provider>
   )

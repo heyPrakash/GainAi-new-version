@@ -1,12 +1,41 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { AuthScreen } from './auth-screen'
 import { ProfileSetup } from './profile-setup'
 import { AiChat } from './ai-chat'
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, hasProfile } = useAuth()
+  const { user, loading, hasProfile, intendedRoute } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (loading) return
+
+    // Unauthenticated users can view home page and public content
+    if (!user) {
+      // Allow home page access, redirect scanners to login
+      if (pathname.includes('food-scanner') || pathname.includes('body-scanner') || pathname.includes('dashboard')) {
+        router.push('/')
+      }
+      return
+    }
+
+    // Authenticated users without profile should see setup form
+    if (!hasProfile) {
+      if (pathname !== '/' && !pathname.includes('food-scanner') && !pathname.includes('body-scanner')) {
+        return
+      }
+    }
+
+    // Authenticated users with profile should go to dashboard
+    if (user && hasProfile && pathname === '/') {
+      router.push('/dashboard')
+    }
+  }, [user, loading, hasProfile, pathname, router])
 
   if (loading) {
     return (
