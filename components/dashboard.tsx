@@ -50,6 +50,9 @@ export function Dashboard() {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [foodScans, setFoodScans] = useState<FoodScan[]>([])
+  const [todayScans, setTodayScans] = useState<FoodScan[]>([])
+  const [weekCount, setWeekCount] = useState(0)
+  const [groupedScans, setGroupedScans] = useState<Record<string, FoodScan[]>>({})
   const [bodyScan, setBodyScan] = useState<BodyScan | null>(null)
   // compute displayName with fallbacks
   const displayName = profile?.name ||
@@ -78,7 +81,7 @@ export function Dashboard() {
         if (profileData) setProfile(profileData)
         // if profileData doesn't contain a name we may still fallback later
 
-        // Fetch food scans
+        // Fetch food scans (all)
         const { data: foodData, error: foodError } = await supabase
           .from('food_scans')
           .select('*')
@@ -86,7 +89,50 @@ export function Dashboard() {
           .order('scanned_at', { ascending: false })
         
         if (foodError) console.error('Food scans error:', foodError)
-        if (foodData) setFoodScans(foodData)
+        if (foodData) {
+          setFoodScans(foodData)
+
+          // derive today's scans
+          const dayStart = new Date()
+          dayStart.setHours(0, 0, 0, 0)
+          const dayISO = dayStart.toISOString()
+          const todays = foodData.filter((s) => s.scanned_at >= dayISO)
+          setTodayScans(todays)
+
+          const todayCalories = todays.reduce(
+            (sum, scan) => sum + (scan.calories ?? scan.total_calories ?? 0),
+            0
+          )
+          const todayProtein = todays.reduce(
+            (sum, scan) => sum + (scan.protein ?? scan.total_protein ?? 0),
+            0
+          )
+          const todayCarbs = todays.reduce(
+            (sum, scan) => sum + (scan.carbs ?? scan.total_carbs ?? 0),
+            0
+          )
+          const todayFats = todays.reduce(
+            (sum, scan) => sum + (scan.fats ?? scan.total_fats ?? 0),
+            0
+          )
+          setTodayStats({ calories: todayCalories, protein: todayProtein, carbs: todayCarbs, fats: todayFats })
+
+          // week count
+          const weekAgo = new Date()
+          weekAgo.setDate(weekAgo.getDate() - 7)
+          const weekISO = weekAgo.toISOString()
+          const weeks = foodData.filter((s) => s.scanned_at >= weekISO)
+          setWeekCount(weeks.length)
+
+          // grouped history
+          const groups = foodData.reduce<Record<string, FoodScan[]>>((g, scan) => {
+            const date = new Date(scan.scanned_at).toLocaleDateString()
+            if (!g[date]) g[date] = []
+            g[date].push(scan)
+            return g
+          }, {})
+          setGroupedScans(groups)
+        }
 
         // Fetch latest body scan
         const { data: bodyData, error: bodyError } = await supabase
@@ -98,31 +144,6 @@ export function Dashboard() {
         
         if (bodyError) console.error('Body scan error:', bodyError)
         if (bodyData && bodyData.length > 0) setBodyScan(bodyData[0])
-
-        // Calculate today's stats
-        const today = new Date().toISOString()?.split('T')?.[0] || ''
-        const todayScans = foodData?.filter(
-          (scan) => scan.scanned_at?.startsWith(today)
-        ) || []
-        const todayCalories = todayScans.reduce(
-          (sum, scan) =>
-            sum + ((scan.total_calories ?? scan.calories) || 0),
-          0
-        )
-        const todayProtein = todayScans.reduce(
-          (sum, scan) => sum + ((scan.total_protein ?? scan.protein) || 0),
-          0
-        )
-        const todayCarbs = todayScans.reduce(
-          (sum, scan) => sum + ((scan.total_carbs ?? scan.carbs) || 0),
-          0
-        )
-        const todayFats = todayScans.reduce(
-          (sum, scan) => sum + ((scan.total_fats ?? scan.fats) || 0),
-          0
-        )
-
-        setTodayStats({ calories: todayCalories, protein: todayProtein, carbs: todayCarbs, fats: todayFats })
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
