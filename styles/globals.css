@@ -169,6 +169,11 @@
   cursor: pointer;
 }
 
+@media (max-width: 1023px) {
+  footer { display: none !important; }
+  .bottom-nav { display: flex !important; }
+}
+
 @media (min-width: 1024px) {
   .bottom-nav { display: none !important; }
 }
