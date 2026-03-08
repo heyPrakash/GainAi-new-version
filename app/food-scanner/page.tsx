@@ -3,7 +3,6 @@
 import { useAuth } from "@/lib/auth-context"
 import { Navbar } from "@/components/navbar"
 import { FoodScanner } from "@/components/food-scanner"
-import { Footer } from "@/components/footer"
 
 export default function FoodScannerPage() {
   const { user, loading } = useAuth()
@@ -39,7 +38,6 @@ export default function FoodScannerPage() {
       <main className="flex-1">
         <FoodScanner />
       </main>
-      <Footer />
     </div>
   )
 }
