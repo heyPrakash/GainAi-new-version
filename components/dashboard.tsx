@@ -20,6 +20,11 @@ interface Profile {
   // renamed fields for goals stored in Supabase
   calorie_goal: number
   protein_goal: number
+  carbs_goal?: number
+  fat_goal?: number
+  fiber_goal?: number
+  bmr?: number
+  tdee?: number
   created_at: string
 }
 
@@ -88,7 +93,7 @@ export function Dashboard() {
         // Fetch profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, age, weight, height, goal, calorie_goal, protein_goal, created_at')
+          .select('id, name, age, weight, height, goal, calorie_goal, protein_goal, carbs_goal, fat_goal, fiber_goal, bmr, tdee, created_at')
           .eq('id', user.id)
           .single()
         
@@ -307,9 +312,9 @@ export function Dashboard() {
                   <MacroRow
                     label='Carbs'
                     current={todayStats.carbs}
-                    goal={250}
+                    goal={profile?.carbs_goal ?? 0}
                   />
-                  <MacroRow label='Fats' current={todayStats.fats} goal={70} />
+                  <MacroRow label='Fats' current={todayStats.fats} goal={profile?.fat_goal ?? 0} />
                 </div>
               </CardContent>
             </Card>

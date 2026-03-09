@@ -11,7 +11,6 @@ interface ProfileFormData {
   fullName: string
   age: number
   weight: number
-  height: number
   goal: 'lose' | 'maintain' | 'gain'
 }
 
@@ -23,9 +22,11 @@ export function ProfileSetup() {
     fullName: '',
     age: 25,
     weight: 70,
-    height: 175,
     goal: 'maintain',
   })
+
+  const [heightFeet, setHeightFeet] = useState('')
+  const [heightInches, setHeightInches] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,22 +36,59 @@ export function ProfileSetup() {
     try {
       if (!user) throw new Error('User not authenticated')
 
-      // first call the Gemini API (key stored in env as NEXT_PUBLIC_GEMINI_API_KEY)
-      let calorie_goal = 0
-      let protein_goal = 0
+      // convert entered height to centimetres
+      const heightInCm =
+        (parseInt(heightFeet) * 30.48) +
+        (parseInt(heightInches || '0') * 2.54)
+
+      let goals = {
+        calorie_goal: 0,
+        protein_goal: 0,
+        carbs_goal: 0,
+        fat_goal: 0,
+        fiber_goal: 0,
+        bmr: 0,
+        tdee: 0,
+      }
 
       try {
         const prompt = `
-Based on this person's stats, calculate their daily calorie and protein goals:
-- Age: ${formData.age}
-- Weight: ${formData.weight}kg
-- Height: ${formData.height}cm
+You are a professional nutritionist and fitness coach.
+Calculate PRECISE daily nutrition goals for this specific person:
+
+- Name: ${formData.fullName}
+- Age: ${formData.age} years
+- Weight: ${formData.weight} kg
+- Height: ${heightInCm.toFixed(1)} cm (${heightFeet}ft ${heightInches || 0}in)
 - Fitness Goal: ${formData.goal}
 
-Respond ONLY with this exact JSON, no markdown:
+Use the Mifflin-St Jeor formula to calculate BMR:
+- For males: BMR = 10 × weight + 6.25 × height - 5 × age + 5
+- For females: BMR = 10 × weight + 6.25 × height - 5 × age - 161
+(assume male if gender not provided)
+
+Then multiply BMR by activity factor 1.55 (moderately active) to get TDEE.
+
+Then adjust based on goal:
+- Lose Fat: TDEE - 500 calories
+- Build Muscle: TDEE + 300 calories
+- Maintain Weight: TDEE exactly
+
+Calculate protein, carbs, fats, fiber based on the adjusted calories:
+- Protein: 2g per kg of bodyweight for muscle building, 1.8g for fat loss, 1.6g for maintain
+- Fats: 25% of total calories divided by 9
+- Carbs: remaining calories divided by 4
+- Fiber: 14g per 1000 calories
+
+Respond ONLY with this exact JSON, no markdown, no explanation:
 {
-  "calorie_goal": <number>,
-  "protein_goal": <number>
+  "calorie_goal": <calculated number>,
+  "protein_goal": <calculated number>,
+  "carbs_goal": <calculated number>,
+  "fat_goal": <calculated number>,
+  "fiber_goal": <calculated number>,
+  "bmr": <calculated number>,
+  "tdee": <calculated number>
 }
 `
         const response = await fetch(
@@ -64,14 +102,19 @@ Respond ONLY with this exact JSON, no markdown:
         const data = await response.json()
         const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
         const clean = raw.replace(/```json|```/g, '').trim()
-        const goals = JSON.parse(clean)
-        calorie_goal = goals.calorie_goal
-        protein_goal = goals.protein_goal
+        goals = JSON.parse(clean)
       } catch (aiErr) {
         console.error('Failed to fetch goals from Gemini', aiErr)
-        // fallback to defaults if the AI call fails
-        calorie_goal = 2000
-        protein_goal = 150
+        // fallback values when AI fails
+        goals = {
+          calorie_goal: 2000,
+          protein_goal: 150,
+          carbs_goal: 250,
+          fat_goal: 70,
+          fiber_goal: 28,
+          bmr: 0,
+          tdee: 0,
+        }
       }
 
       const { error: err } = await supabase
@@ -81,10 +124,15 @@ Respond ONLY with this exact JSON, no markdown:
           name: formData.fullName,
           age: parseInt(formData.age.toString()),
           weight: parseFloat(formData.weight.toString()),
-          height: parseFloat(formData.height.toString()),
+          height: parseFloat(heightInCm.toFixed(1)),
           goal: formData.goal,
-          calorie_goal,
-          protein_goal,
+          calorie_goal: goals.calorie_goal,
+          protein_goal: goals.protein_goal,
+          carbs_goal: goals.carbs_goal,
+          fat_goal: goals.fat_goal,
+          fiber_goal: goals.fiber_goal,
+          bmr: goals.bmr,
+          tdee: goals.tdee,
         })
 
       if (err) throw err
@@ -156,18 +204,28 @@ Respond ONLY with this exact JSON, no markdown:
 
             <div>
               <label className='block text-sm font-medium text-foreground mb-1'>
-                Height (cm)
+                Height
               </label>
-              <input
-                type='number'
-                value={formData.height}
-                onChange={(e) => setFormData({ ...formData, height: parseFloat(e.target.value) })}
-                className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
-                min='100'
-                max='250'
-                step='0.1'
-                required
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="number"
+                  placeholder="Feet (e.g. 5)"
+                  min="3" max="8"
+                  value={heightFeet}
+                  onChange={(e) => setHeightFeet(e.target.value)}
+                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Inches (e.g. 10)"
+                  min="0" max="11"
+                  value={heightInches}
+                  onChange={(e) => setHeightInches(e.target.value)}
+                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
+                  required
+                />
+              </div>
             </div>
 
             <div>
