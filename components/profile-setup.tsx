@@ -25,8 +25,7 @@ export function ProfileSetup() {
     goal: 'maintain',
   })
 
-  const [heightFeet, setHeightFeet] = useState('')
-  const [heightInches, setHeightInches] = useState('')
+  const [height, setHeight] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,10 +35,8 @@ export function ProfileSetup() {
     try {
       if (!user) throw new Error('User not authenticated')
 
-      // convert entered height to centimetres
-      const heightInCm =
-        (parseInt(heightFeet) * 30.48) +
-        (parseInt(heightInches || '0') * 2.54)
+      // use provided height in centimetres
+      const heightInCm = parseFloat(height)
 
       let goals = {
         calorie_goal: 0,
@@ -53,43 +50,23 @@ export function ProfileSetup() {
 
       try {
         const prompt = `
-You are a professional nutritionist and fitness coach.
-Calculate PRECISE daily nutrition goals for this specific person:
-
-- Name: ${formData.fullName}
+You are a professional nutritionist. Calculate daily nutrition goals for:
 - Age: ${formData.age} years
 - Weight: ${formData.weight} kg
-- Height: ${heightInCm.toFixed(1)} cm (${heightFeet}ft ${heightInches || 0}in)
-- Fitness Goal: ${formData.goal}
+- Height: ${height} cm
+- Goal: ${formData.goal}
 
-Use the Mifflin-St Jeor formula to calculate BMR:
-- For males: BMR = 10 × weight + 6.25 × height - 5 × age + 5
-- For females: BMR = 10 × weight + 6.25 × height - 5 × age - 161
-(assume male if gender not provided)
+Use Mifflin-St Jeor formula:
+BMR = 10 × ${formData.weight} + 6.25 × ${height} - 5 × ${formData.age} + 5
+TDEE = BMR × 1.55
 
-Then multiply BMR by activity factor 1.55 (moderately active) to get TDEE.
+Adjust for goal:
+- Lose Fat: TDEE - 500
+- Gain Muscle: TDEE + 300
+- Maintain Weight: TDEE
 
-Then adjust based on goal:
-- Lose Fat: TDEE - 500 calories
-- Build Muscle: TDEE + 300 calories
-- Maintain Weight: TDEE exactly
-
-Calculate protein, carbs, fats, fiber based on the adjusted calories:
-- Protein: 2g per kg of bodyweight for muscle building, 1.8g for fat loss, 1.6g for maintain
-- Fats: 25% of total calories divided by 9
-- Carbs: remaining calories divided by 4
-- Fiber: 14g per 1000 calories
-
-Respond ONLY with this exact JSON, no markdown, no explanation:
-{
-  "calorie_goal": <calculated number>,
-  "protein_goal": <calculated number>,
-  "carbs_goal": <calculated number>,
-  "fat_goal": <calculated number>,
-  "fiber_goal": <calculated number>,
-  "bmr": <calculated number>,
-  "tdee": <calculated number>
-}
+Respond ONLY with raw JSON no markdown:
+{"calorie_goal": <number>, "protein_goal": <number>, "carbs_goal": <number>, "fat_goal": <number>, "fiber_goal": <number>}
 `
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
@@ -119,21 +96,19 @@ Respond ONLY with this exact JSON, no markdown, no explanation:
 
       const { error: err } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: user.id,
           name: formData.fullName,
           age: parseInt(formData.age.toString()),
           weight: parseFloat(formData.weight.toString()),
-          height: parseFloat(heightInCm.toFixed(1)),
+          height: parseFloat(height),
           goal: formData.goal,
           calorie_goal: goals.calorie_goal,
           protein_goal: goals.protein_goal,
           carbs_goal: goals.carbs_goal,
           fat_goal: goals.fat_goal,
           fiber_goal: goals.fiber_goal,
-          bmr: goals.bmr,
-          tdee: goals.tdee,
-        })
+        }, { onConflict: 'id' })
 
       if (err) throw err
       
@@ -204,28 +179,17 @@ Respond ONLY with this exact JSON, no markdown, no explanation:
 
             <div>
               <label className='block text-sm font-medium text-foreground mb-1'>
-                Height
+                Height (cm)
               </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="number"
-                  placeholder="Feet (e.g. 5)"
-                  min="3" max="8"
-                  value={heightFeet}
-                  onChange={(e) => setHeightFeet(e.target.value)}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Inches (e.g. 10)"
-                  min="0" max="11"
-                  value={heightInches}
-                  onChange={(e) => setHeightInches(e.target.value)}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
-                  required
-                />
-              </div>
+              <input
+                type='number'
+                placeholder='Height in cm (e.g. 175)'
+                min='100' max='250'
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm'
+                required
+              />
             </div>
 
             <div>
