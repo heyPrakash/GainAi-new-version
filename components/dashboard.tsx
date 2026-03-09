@@ -29,21 +29,16 @@ interface Profile {
 }
 
 interface FoodScan {
-  id: string
-  scanned_at: string
-  total_calories?: number
-  calories?: number
-  total_protein?: number
-  protein?: number
-  total_carbs?: number
-  carbs?: number
-  total_fats?: number
-  fats?: number
-  foods?: any[]
-  food_name?: string
-  fiber?: number
+  id?: string
+  food_name: string
+  calories: number
+  protein: number
+  carbs: number
+  fats: number
+  fiber: number
   health_score?: number
   health_rating?: string
+  scanned_at: string
 }
 
 interface BodyScan {
@@ -343,7 +338,7 @@ export function Dashboard() {
                   const color = getScoreColor(scan.health_score ?? 50)
                   return (
                     <div
-                      key={scan.id}
+                      key={scan.id ?? scan.scanned_at}
                       style={{
                         padding: '12px 16px',
                         borderRadius: '10px',
@@ -362,15 +357,15 @@ export function Dashboard() {
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: '700' }}>{scan.calories} kcal</div>
-                        {scan.health_score && (
+                        <div style={{ fontWeight: '700' }}>{scan.calories ?? 0} kcal</div>
+                        {scan.health_score !== undefined && (
                           <div style={{
                             fontSize: '11px',
                             fontWeight: '600',
                             color: getScoreColor(scan.health_score),
                             marginTop: '2px'
                           }}>
-                            {scan.health_score}/100 · {scan.health_rating}
+                            {scan.health_score}/100 · {scan.health_rating ?? 'Average'}
                           </div>
                         )}
                       </div>
