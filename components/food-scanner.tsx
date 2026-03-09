@@ -231,6 +231,19 @@ Health score rules for gym/fitness people:
         fiber: Number(analysis.total_fiber) || 0,
         health_score: analysis.health_score ?? null,
         health_rating: analysis.health_rating || null,
+      }
+
+      const { error } = await supabase.from('food_scans').insert(insertObj)
+      if (error) throw error
+      setSaveMessage('✅ Saved to Dashboard!')
+      router.refresh()
+    } catch (err) {
+      setSaveMessage('Failed to save')
+      setSaved(false)
+      console.error(err)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 lg:px-6">
       <div className="mb-8">
