@@ -14,6 +14,41 @@ interface ProfileFormData {
   goal: 'lose' | 'maintain' | 'gain'
 }
 
+// simple math-based goal calculator using Mifflin-St Jeor (male assumption)
+const calculateGoals = (
+  age: number,
+  weight: number,
+  height: number,
+  goal: string
+) => {
+  const bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
+  const tdee = Math.round(bmr * 1.55)
+
+  let calories: number
+  if (goal === 'lose') {
+    calories = tdee - 500
+  } else if (goal === 'gain') {
+    calories = tdee + 300
+  } else {
+    calories = tdee
+  }
+
+  const protein = Math.round(
+    weight * (goal === 'gain' ? 2.2 : goal === 'lose' ? 2.0 : 1.8)
+  )
+  const fat = Math.round((calories * 0.25) / 9)
+  const carbs = Math.round((calories - protein * 4 - fat * 9) / 4)
+  const fiber = Math.round((calories / 1000) * 14)
+
+  return {
+    calorie_goal: calories,
+    protein_goal: protein,
+    carbs_goal: Math.max(carbs, 50),
+    fat_goal: fat,
+    fiber_goal: fiber,
+  }
+}
+
 export function ProfileSetup() {
   const { user, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
@@ -38,61 +73,12 @@ export function ProfileSetup() {
       // use provided height in centimetres
       const heightInCm = parseFloat(height)
 
-      let goals = {
-        calorie_goal: 0,
-        protein_goal: 0,
-        carbs_goal: 0,
-        fat_goal: 0,
-        fiber_goal: 0,
-        bmr: 0,
-        tdee: 0,
-      }
-
-      try {
-        const prompt = `
-You are a professional nutritionist. Calculate daily nutrition goals for:
-- Age: ${formData.age} years
-- Weight: ${formData.weight} kg
-- Height: ${height} cm
-- Goal: ${formData.goal}
-
-Use Mifflin-St Jeor formula:
-BMR = 10 × ${formData.weight} + 6.25 × ${height} - 5 × ${formData.age} + 5
-TDEE = BMR × 1.55
-
-Adjust for goal:
-- Lose Fat: TDEE - 500
-- Gain Muscle: TDEE + 300
-- Maintain Weight: TDEE
-
-Respond ONLY with raw JSON no markdown:
-{"calorie_goal": <number>, "protein_goal": <number>, "carbs_goal": <number>, "fat_goal": <number>, "fiber_goal": <number>}
-`
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-          }
-        )
-        const data = await response.json()
-        const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-        const clean = raw.replace(/```json|```/g, '').trim()
-        goals = JSON.parse(clean)
-      } catch (aiErr) {
-        console.error('Failed to fetch goals from Gemini', aiErr)
-        // fallback values when AI fails
-        goals = {
-          calorie_goal: 2000,
-          protein_goal: 150,
-          carbs_goal: 250,
-          fat_goal: 70,
-          fiber_goal: 28,
-          bmr: 0,
-          tdee: 0,
-        }
-      }
+      const goals = calculateGoals(
+        formData.age,
+        formData.weight,
+        heightInCm,
+        formData.goal
+      )
 
       const { error: err } = await supabase
         .from('profiles')
