@@ -415,7 +415,10 @@ Health score rules for gym/fitness people:
 
               {/* Health Score Section */}
               {analysis && (() => {
-                const score = analysis.health_score ?? 0
+                // convert any old 0-100 responses down to 0-10 and clamp
+                const raw = analysis.health_score ?? 0
+                const normalized = raw > 10 ? raw / 10 : raw
+                const score = Math.min(Math.max(normalized, 0), 10)
                 const scoreColor = score >= 8 ? '#00ff88' :
                                    score >= 6 ? '#86efac' :
                                    score >= 4 ? '#facc15' :
