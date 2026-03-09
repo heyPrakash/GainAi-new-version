@@ -91,6 +91,12 @@ export function Dashboard() {
     if (score >= 2) return '#fb923c'
     return '#ef4444'
   }
+
+  const normalizeScore = (score: number) => {
+    if (!score) return 0
+    // If old score stored as 0-100, convert to 0-10
+    return score > 10 ? Math.round(score / 10) : score
+  }
   const [todayStats, setTodayStats] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 })
   const [loading, setLoading] = useState(true)
 
@@ -335,7 +341,9 @@ export function Dashboard() {
             <CardContent className='p-2'>
               {todayScans.length > 0 ? (
                 todayScans.map((scan) => {
-                  const color = getScoreColor(scan.health_score ?? 5)
+                  const raw = scan.health_score ?? 0
+                  const score = normalizeScore(raw)
+                  const color = getScoreColor(score)
                   return (
                     <div
                       key={scan.id ?? scan.scanned_at}
@@ -362,10 +370,10 @@ export function Dashboard() {
                           <div style={{
                             fontSize: '11px',
                             fontWeight: '600',
-                            color: getScoreColor(scan.health_score),
+                            color: color,
                             marginTop: '2px'
                           }}>
-                            {scan.health_score}/10 · {scan.health_rating ?? 'Average'}
+                            {score}/10 · {scan.health_rating ?? 'Average'}
                           </div>
                         )}
                       </div>
