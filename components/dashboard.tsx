@@ -159,7 +159,7 @@ export function Dashboard() {
         setWeekCount(weeks.length)
         const weekEnd = new Date(weekStart)
         weekEnd.setDate(weekEnd.getDate() + 6)
-        const label = `${weekStart.toLocaleDateString('en', {month:'short', day:'numeric'})} - ${weekEnd.toLocaleDateString('en', {month:'short', day:'numeric'})}`
+        const label = `${weekStart.toLocaleDateString('en-IN', {month:'short', day:'numeric', timeZone: 'Asia/Kolkata'})} - ${weekEnd.toLocaleDateString('en-IN', {month:'short', day:'numeric', timeZone: 'Asia/Kolkata'})}`
         setWeekLabel(label)
 
         // still keep full foodScans array if you want all history later
