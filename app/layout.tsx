@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "GainAi - AI-Powered Nutrition & Body Analysis",
   description:
     "Your premium AI fitness tool. Scan food for macros, analyze body composition, and get personalized coaching from your AI fitness assistant.",
+  icons: {
+    icon: "/logo.png",
+  },
 }
 
 export const viewport: Viewport = {
