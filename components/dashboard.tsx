@@ -343,6 +343,55 @@ export function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Meal History */}
+          <Card className='border-border/50 mt-4'>
+            <CardContent className='p-2'>
+              <p className='mb-3 px-3 pt-3 text-sm font-semibold text-foreground'>
+                Meal History
+              </p>
+              {weekScans.length > 0 ? (
+                weekScans.map((scan) => {
+                  const raw = scan.health_score ?? 0
+                  const score = normalizeScore(raw)
+                  const color = getScoreColor(score)
+                  return (
+                    <div
+                      key={scan.id ?? scan.scanned_at}
+                      style={{
+                        padding: '12px 16px',
+                        borderRadius: '10px',
+                        borderLeft: `4px solid ${color}`,
+                        background: `${color}12`,
+                        marginBottom: '8px',
+                        marginLeft: '8px',
+                        marginRight: '8px'
+                      }}
+                    >
+                      <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                        {scan.food_name || 'Food Scan'}
+                      </div>
+                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>
+                        {scan.calories ?? 0} kcal
+                      </div>
+                      <div style={{ fontSize: '12px', opacity: 0.6 }}>
+                        {new Date(scan.scanned_at).toLocaleDateString('en-IN', {
+                          timeZone: 'Asia/Kolkata',
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className='p-4 text-center'>
+                  <p className='text-sm text-muted-foreground'>No meal history</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
 
@@ -434,54 +483,7 @@ export function Dashboard() {
             </Card>
           </div>
 
-          {/* Meal History with Full Timestamps */}
-          <Card className='border-border/50 mt-4'>
-            <CardContent className='p-2'>
-              <p className='mb-3 px-3 pt-3 text-sm font-semibold text-foreground'>
-                Meal History
-              </p>
-              {weekScans.length > 0 ? (
-                weekScans.map((scan) => {
-                  const raw = scan.health_score ?? 0
-                  const score = normalizeScore(raw)
-                  const color = getScoreColor(score)
-                  return (
-                    <div
-                      key={scan.id ?? scan.scanned_at}
-                      style={{
-                        padding: '12px 16px',
-                        borderRadius: '10px',
-                        borderLeft: `4px solid ${color}`,
-                        background: `${color}12`,
-                        marginBottom: '8px',
-                        marginLeft: '8px',
-                        marginRight: '8px'
-                      }}
-                    >
-                      <div style={{ fontWeight: '600', marginBottom: '4px' }}>
-                        {scan.food_name || 'Food Scan'}
-                      </div>
-                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>
-                        {scan.calories ?? 0} kcal
-                      </div>
-                      <div style={{ fontSize: '12px', opacity: 0.6 }}>
-                        {new Date(scan.scanned_at).toLocaleDateString('en-IN', {
-                          timeZone: 'Asia/Kolkata',
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className='p-4 text-center'>
-                  <p className='text-sm text-muted-foreground'>No meal history</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
         </TabsContent>
       </Tabs>
     </div>
