@@ -465,13 +465,11 @@ export function Dashboard() {
                         {scan.calories ?? 0} kcal
                       </div>
                       <div style={{ fontSize: '12px', opacity: 0.6 }}>
-                        {new Date(scan.scanned_at).toLocaleString('en-IN', {
+                        {new Date(scan.scanned_at).toLocaleDateString('en-IN', {
                           timeZone: 'Asia/Kolkata',
                           day: '2-digit',
                           month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
+                          year: 'numeric'
                         })}
                       </div>
                     </div>
