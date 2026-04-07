@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Activity, ScanLine, TrendingUp, Flame, Target, Calendar, Loader as Loader2 } from 'lucide-react'
+import { Activity, ScanLine, TrendingUp, Flame, Target, Calendar, Loader as Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 
@@ -292,6 +293,9 @@ export function Dashboard() {
           <TabsTrigger value='progress' className='rounded-lg text-xs'>
             Progress
           </TabsTrigger>
+          <TabsTrigger value='profile' className='rounded-lg text-xs'>
+            Edit Profile
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value='overview'>
@@ -359,6 +363,10 @@ export function Dashboard() {
         </TabsContent>
 
 
+
+        <TabsContent value='profile'>
+          <EditProfileTab profile={profile} user={user} onSaved={(updated) => setProfile(updated)} />
+        </TabsContent>
 
         <TabsContent value='progress'>
           <div className='grid gap-4 lg:grid-cols-2'>
@@ -508,6 +516,184 @@ function MacroRow({
         </span>
       </div>
       <Progress value={Math.min(percent, 100)} className='h-2' />
+    </div>
+  )
+}
+
+const calculateGoals = (age: number, weight: number, height: number, goal: string) => {
+  const bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
+  const tdee = Math.round(bmr * 1.55)
+  let calories = goal === 'lose' ? tdee - 500 : goal === 'gain' ? tdee + 300 : tdee
+  const protein = Math.round(weight * (goal === 'gain' ? 2.2 : goal === 'lose' ? 2.0 : 1.8))
+  const fat = Math.round((calories * 0.25) / 9)
+  const carbs = Math.round((calories - protein * 4 - fat * 9) / 4)
+  const fiber = Math.round((calories / 1000) * 14)
+  return {
+    calorie_goal: calories,
+    protein_goal: protein,
+    carbs_goal: Math.max(carbs, 50),
+    fat_goal: fat,
+    fiber_goal: fiber,
+  }
+}
+
+function EditProfileTab({
+  profile,
+  user,
+  onSaved,
+}: {
+  profile: Profile
+  user: any
+  onSaved: (updated: Profile) => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    name: profile.name || '',
+    age: profile.age?.toString() || '',
+    weight: profile.weight?.toString() || '',
+    height: profile.height?.toString() || '',
+    goal: profile.goal || 'maintain',
+  })
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setSuccess(false)
+    try {
+      const age = parseInt(form.age)
+      const weight = parseFloat(form.weight)
+      const height = parseFloat(form.height)
+      const goals = calculateGoals(age, weight, height, form.goal)
+      const { error: err } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: form.name,
+          age,
+          weight,
+          height,
+          goal: form.goal,
+          ...goals,
+        }, { onConflict: 'id' })
+      if (err) throw err
+      onSaved({ ...profile, name: form.name, age, weight, height, goal: form.goal, ...goals })
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className='grid gap-4 lg:grid-cols-2'>
+      <Card className='border-border/50'>
+        <CardContent className='p-5'>
+          <div className='mb-4 flex items-center gap-2'>
+            <User className='h-4 w-4 text-primary' />
+            <p className='text-sm font-semibold text-foreground'>Personal Info</p>
+          </div>
+          <form onSubmit={handleSave} className='flex flex-col gap-4'>
+            <div>
+              <label className='mb-1 block text-xs font-medium text-muted-foreground'>Full Name</label>
+              <input
+                type='text'
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none'
+                placeholder='Your name'
+                required
+              />
+            </div>
+            <div className='grid grid-cols-2 gap-3'>
+              <div>
+                <label className='mb-1 block text-xs font-medium text-muted-foreground'>Age</label>
+                <input
+                  type='number'
+                  value={form.age}
+                  onChange={(e) => setForm({ ...form, age: e.target.value })}
+                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none'
+                  min='13' max='120' required
+                />
+              </div>
+              <div>
+                <label className='mb-1 block text-xs font-medium text-muted-foreground'>Weight (kg)</label>
+                <input
+                  type='number'
+                  value={form.weight}
+                  onChange={(e) => setForm({ ...form, weight: e.target.value })}
+                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none'
+                  min='30' step='0.1' required
+                />
+              </div>
+            </div>
+            <div>
+              <label className='mb-1 block text-xs font-medium text-muted-foreground'>Height (cm)</label>
+              <input
+                type='number'
+                value={form.height}
+                onChange={(e) => setForm({ ...form, height: e.target.value })}
+                className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none'
+                min='100' max='250' required
+              />
+            </div>
+            <div>
+              <label className='mb-1 block text-xs font-medium text-muted-foreground'>Fitness Goal</label>
+              <select
+                value={form.goal}
+                onChange={(e) => setForm({ ...form, goal: e.target.value })}
+                className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none'
+                required
+              >
+                <option value='lose'>Lose Weight</option>
+                <option value='maintain'>Maintain Weight</option>
+                <option value='gain'>Gain Muscle</option>
+              </select>
+            </div>
+            {error && (
+              <div className='rounded-lg border border-red-500/50 bg-red-500/5 p-3'>
+                <p className='text-xs text-red-600'>{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className='rounded-lg border border-primary/30 bg-primary/5 p-3'>
+                <p className='text-xs text-primary font-medium'>Profile updated successfully!</p>
+              </div>
+            )}
+            <Button type='submit' disabled={loading} className='w-full rounded-lg'>
+              {loading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className='border-border/50'>
+        <CardContent className='p-5'>
+          <p className='mb-4 text-sm font-semibold text-foreground'>Current Goals</p>
+          <div className='flex flex-col gap-3'>
+            {[
+              { label: 'Daily Calories', value: `${profile.calorie_goal ?? 0} kcal` },
+              { label: 'Protein Goal', value: `${profile.protein_goal ?? 0}g` },
+              { label: 'Carbs Goal', value: `${profile.carbs_goal ?? 0}g` },
+              { label: 'Fat Goal', value: `${profile.fat_goal ?? 0}g` },
+              { label: 'Fiber Goal', value: `${profile.fiber_goal ?? 0}g` },
+            ].map((item) => (
+              <div key={item.label} className='flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2.5'>
+                <span className='text-xs text-muted-foreground'>{item.label}</span>
+                <span className='text-sm font-semibold text-foreground'>{item.value}</span>
+              </div>
+            ))}
+          </div>
+          <p className='mt-4 text-[10px] text-muted-foreground'>
+            Goals are recalculated automatically when you save changes to your profile.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }

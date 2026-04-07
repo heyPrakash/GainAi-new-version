@@ -9,3 +9,33 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NEXT_PUBLIC_SUPABASE_URL = "https://gqinohfqneydndgakodk.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_c5gow1SfUZvOQPYRuqf7lw_BG5qXt26"
+NEXT_PUBLIC_GEMINI_API_KEY = "AIzaSyDHvGYDhy3ixuyPEqPR2oXYZF3GC7ellVk"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

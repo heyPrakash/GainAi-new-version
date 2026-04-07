@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/hero-section"
 import { StatsSection } from "@/components/stats-section"
 import { FeaturesSection } from "@/components/features-section"
 import { FounderSection } from "@/components/founder-section"
+import { ApkDownloadSection } from "@/components/apk-download-section"
 import { Footer } from "@/components/footer"
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
         <HeroSection />
         <StatsSection />
         <FeaturesSection />
+        <ApkDownloadSection />
         <FounderSection />
       </main>
       <Footer />
