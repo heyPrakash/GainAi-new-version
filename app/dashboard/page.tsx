@@ -1,5 +1,16 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Dashboard } from "@/components/dashboard"
+
+export const metadata: Metadata = {
+  title: "Dashboard — Your Fitness Overview",
+  description:
+    "Track your daily calories, macros, food scans, and body composition progress all in one place.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function DashboardPage() {
   return (

@@ -1,13 +1,21 @@
 {
-  "name": "GainAi",
+  "name": "GainAi — AI Nutrition & Body Analysis",
   "short_name": "GainAi",
-  "description": "AI Powered Fitness App",
+  "description": "Scan food for instant macros, analyze body composition with AI, and get personalized fitness coaching.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f1318",
-  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
   "orientation": "portrait",
+  "lang": "en",
+  "categories": ["health", "fitness", "lifestyle"],
+  "screenshots": [],
   "icons": [
+    {
+      "src": "/icon-light-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
     {
       "src": "/logo.png",
       "sizes": "192x192",
@@ -16,7 +24,8 @@
     {
       "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
