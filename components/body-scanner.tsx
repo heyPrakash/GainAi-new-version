@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/lib/auth-context"
 
-const API_KEY = "AIzaSyDHvGYDhy3ixuyPEqPR2oXYZF3GC7ellVk"
+const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY
 
 interface BodyResult {
   body_fat: number

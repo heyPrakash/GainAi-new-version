@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import { AuthLayout } from "@/components/auth-layout"
@@ -46,7 +45,6 @@ export default function RootLayout({
             <AuthLayout>{children}</AuthLayout>
           </ThemeProvider>
         </AuthProvider>
-        <Analytics />
       </body>
     </html>
   )

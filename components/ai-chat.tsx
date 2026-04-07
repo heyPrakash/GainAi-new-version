@@ -5,7 +5,7 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const API_KEY = "AIzaSyDHvGYDhy3ixuyPEqPR2oXYZF3GC7ellVk"
+const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY
 
 interface Message {
   id: string
