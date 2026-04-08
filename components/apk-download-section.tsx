@@ -38,7 +38,7 @@ export function ApkDownloadSection() {
             </div>
 
             <a
-              href="/GainAi_1775568703934.apk"
+              href="/GainAi.apk"
               download="GainAi.apk"
               className="mt-8"
             >
