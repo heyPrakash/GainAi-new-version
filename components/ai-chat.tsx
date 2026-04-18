@@ -99,27 +99,21 @@ export function AiChat() {
 
   return (
     <>
-      {/* Floating Button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className={cn(
-          "fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95",
-          open && "rotate-0"
-        )}
-        style={{
-          position: 'fixed',
-          bottom: '90px',
-          right: '24px',
-          zIndex: 998,
-        }}
-        aria-label={open ? "Close chat" : "Open AI coach chat"}
-      >
-        {open ? (
-          <X className="h-5 w-5" />
-        ) : (
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95"
+          style={{
+            position: 'fixed',
+            bottom: '90px',
+            right: '24px',
+            zIndex: 998,
+          }}
+          aria-label="Open AI coach chat"
+        >
           <MessageCircle className="h-5 w-5" />
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Chat Panel */}
       {open && (
@@ -140,6 +134,14 @@ export function AiChat() {
               </p>
             </div>
             <div className="ml-auto flex h-2 w-2 rounded-full bg-primary" />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Close AI coach chat"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           {/* Messages */}
