@@ -3,7 +3,10 @@ export async function processImageFile(
   maxDimension = 1280,
   quality = 0.85
 ): Promise<string> {
-  if (!file.type.startsWith("image/") && !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) {
+  const isImageType = file.type.startsWith("image/")
+  const isImageExt = /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)
+  const isImageName = /^image/i.test(file.name)
+  if (!isImageType && !isImageExt && !isImageName) {
     throw new Error("Selected file is not an image")
   }
 
@@ -63,3 +66,4 @@ function scaleDown(w: number, h: number, max: number) {
   const ratio = w > h ? max / w : max / h
   return { width: Math.round(w * ratio), height: Math.round(h * ratio) }
 }
+
