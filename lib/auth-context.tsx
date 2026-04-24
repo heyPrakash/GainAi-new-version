@@ -44,8 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null)
+      (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          setUser(session?.user || null)
+        }
       }
     )
 
@@ -121,3 +123,4 @@ export function useAuth() {
   }
   return context
 }
+
