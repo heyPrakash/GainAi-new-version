@@ -45,20 +45,6 @@ export function FoodScanner() {
   const [preparing, setPreparing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const processFile = useCallback(async (file: File) => {
-    setError(null)
-    setAnalysis(null)
-    setPreparing(true)
-    try {
-      const dataUrl = await processImageFile(file)
-      setImage(dataUrl)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load the image")
-    } finally {
-      setPreparing(false)
-    }
-  }, [])
-
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target
@@ -67,25 +53,21 @@ export function FoodScanner() {
         input.value = ""
         return
       }
-      await processFile(file)
-      input.value = ""
-    },
-    [processFile]
-  )
-
-  const triggerCamera = useCallback(() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.capture = 'environment'
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0]
-      if (file) {
-        await processFile(file)
+      setError(null)
+      setAnalysis(null)
+      setPreparing(true)
+      try {
+        const dataUrl = await processImageFile(file)
+        setImage(dataUrl)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load the image")
+      } finally {
+        setPreparing(false)
+        input.value = ""
       }
-    }
-    input.click()
-  }, [processFile])
+    },
+    []
+  )
 
   const handleScan = useCallback(async () => {
     if (!image) return
@@ -313,7 +295,25 @@ Health score rules for gym/fitness people (1–10 whole numbers):
                     variant="outline"
                     size="sm"
                     className="rounded-lg"
-                    onClick={triggerCamera}
+                    onClick={() => {
+                      const input = document.createElement('input')
+                      input.type = 'file'
+                      input.accept = 'image/*'
+                      input.capture = 'environment'
+                      input.onchange = (e) => {
+                        const target = e.target as HTMLInputElement
+                        const file = target.files?.[0]
+                        if (!file) return
+                        setError(null)
+                        setAnalysis(null)
+                        setPreparing(true)
+                        processImageFile(file)
+                          .then((dataUrl) => setImage(dataUrl))
+                          .catch((err) => setError(err instanceof Error ? err.message : "Could not load the image"))
+                          .finally(() => setPreparing(false))
+                      }
+                      input.click()
+                    }}
                   >
                     <Camera className="mr-2 h-3.5 w-3.5" />
                     Take Photo

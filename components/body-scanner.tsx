@@ -73,20 +73,6 @@ export function BodyScanner() {
   // compute badgeColors even when results is null (fallback)
   const badgeColors = getBodyTypeColor(results?.body_type)
 
-  const processFile = useCallback(async (file: File) => {
-    setError(null)
-    setResults(null)
-    setPreparing(true)
-    try {
-      const dataUrl = await processImageFile(file)
-      setImage(dataUrl)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load the image")
-    } finally {
-      setPreparing(false)
-    }
-  }, [])
-
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target
@@ -95,25 +81,21 @@ export function BodyScanner() {
         input.value = ""
         return
       }
-      await processFile(file)
-      input.value = ""
-    },
-    [processFile]
-  )
-
-  const triggerCamera = useCallback(() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.capture = 'user'
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0]
-      if (file) {
-        await processFile(file)
+      setError(null)
+      setResults(null)
+      setPreparing(true)
+      try {
+        const dataUrl = await processImageFile(file)
+        setImage(dataUrl)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load the image")
+      } finally {
+        setPreparing(false)
+        input.value = ""
       }
-    }
-    input.click()
-  }, [processFile])
+    },
+    []
+  )
 
   const handleAnalyze = useCallback(async () => {
     if (!image) return
@@ -269,7 +251,25 @@ Note: if the user appears skinny, do NOT label them as Ectomorph—use "Skinny" 
                     variant="outline"
                     size="sm"
                     className="rounded-lg"
-                    onClick={triggerCamera}
+                    onClick={() => {
+                      const input = document.createElement('input')
+                      input.type = 'file'
+                      input.accept = 'image/*'
+                      input.capture = 'user'
+                      input.onchange = (e) => {
+                        const target = e.target as HTMLInputElement
+                        const file = target.files?.[0]
+                        if (!file) return
+                        setError(null)
+                        setResults(null)
+                        setPreparing(true)
+                        processImageFile(file)
+                          .then((dataUrl) => setImage(dataUrl))
+                          .catch((err) => setError(err instanceof Error ? err.message : "Could not load the image"))
+                          .finally(() => setPreparing(false))
+                      }
+                      input.click()
+                    }}
                   >
                     <Camera className="mr-2 h-3.5 w-3.5" />
                     Take Photo
