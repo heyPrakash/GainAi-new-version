@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Upload, Activity, X, Loader2, TrendingUp, TrendingDown, Minus, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -61,12 +61,7 @@ function getBodyTypeColor(type?: string) {
 
 export function BodyScanner() {
   const { user } = useAuth()
-  const [image, setImage] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('bodyScannerImage') || null
-    }
-    return null
-  })
+  const [image, setImage] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
   const [results, setResults] = useState<BodyResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -76,15 +71,20 @@ export function BodyScanner() {
   const [cameraInputKey, setCameraInputKey] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const setImageWithStorage = useCallback((dataUrl: string | null) => {
-    if (typeof window !== 'undefined') {
-      if (dataUrl) {
-        sessionStorage.setItem('bodyScannerImage', dataUrl)
-      } else {
-        sessionStorage.removeItem('bodyScannerImage')
-      }
+  useEffect(() => {
+    const stored = sessionStorage.getItem('bodyScannerImage')
+    if (stored) {
+      setImage(stored)
     }
-    setImageWithStorage(dataUrl)
+  }, [])
+
+  const setImageWithStorage = useCallback((dataUrl: string | null) => {
+    if (dataUrl) {
+      sessionStorage.setItem('bodyScannerImage', dataUrl)
+    } else {
+      sessionStorage.removeItem('bodyScannerImage')
+    }
+    setImage(dataUrl)
   }, [])
 
   // compute badgeColors even when results is null (fallback)
@@ -514,6 +514,7 @@ Note: if the user appears skinny, do NOT label them as Ectomorph—use "Skinny" 
     </div>
   )
 }
+
 
 
 
