@@ -69,10 +69,23 @@ export function BodyScanner() {
   const [saveMessage, setSaveMessage] = useState('')
   const [preparing, setPreparing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   // compute badgeColors even when results is null (fallback)
   const badgeColors = getBodyTypeColor(results?.body_type)
+
+  const processFile = useCallback(async (file: File) => {
+    setError(null)
+    setResults(null)
+    setPreparing(true)
+    try {
+      const dataUrl = await processImageFile(file)
+      setImage(dataUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load the image")
+    } finally {
+      setPreparing(false)
+    }
+  }, [])
 
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,21 +95,25 @@ export function BodyScanner() {
         input.value = ""
         return
       }
-      setError(null)
-      setResults(null)
-      setPreparing(true)
-      try {
-        const dataUrl = await processImageFile(file)
-        setImage(dataUrl)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not load the image")
-      } finally {
-        setPreparing(false)
-        input.value = ""
-      }
+      await processFile(file)
+      input.value = ""
     },
-    []
+    [processFile]
   )
+
+  const triggerCamera = useCallback(() => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.capture = 'user'
+    input.onchange = async (e: any) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        await processFile(file)
+      }
+    }
+    input.click()
+  }, [processFile])
 
   const handleAnalyze = useCallback(async () => {
     if (!image) return
@@ -208,7 +225,6 @@ Note: if the user appears skinny, do NOT label them as Ectomorph—use "Skinny" 
     setSaved(false)
     setSaveMessage('')
     if (fileInputRef.current) fileInputRef.current.value = ""
-    if (cameraInputRef.current) cameraInputRef.current.value = ""
   }, [])
 
   return (
@@ -253,7 +269,7 @@ Note: if the user appears skinny, do NOT label them as Ectomorph—use "Skinny" 
                     variant="outline"
                     size="sm"
                     className="rounded-lg"
-                    onClick={() => cameraInputRef.current?.click()}
+                    onClick={triggerCamera}
                   >
                     <Camera className="mr-2 h-3.5 w-3.5" />
                     Take Photo
@@ -263,14 +279,6 @@ Note: if the user appears skinny, do NOT label them as Ectomorph—use "Skinny" 
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  className="sr-only"
-                  onChange={handleUpload}
-                />
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="user"
                   className="sr-only"
                   onChange={handleUpload}
                 />
