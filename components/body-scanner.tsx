@@ -72,17 +72,23 @@ export function BodyScanner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('bodyScannerImage')
-    if (stored) {
-      setImage(stored)
+    const fromCamera = sessionStorage.getItem('bodyScannerFromCamera')
+    if (fromCamera) {
+      const stored = sessionStorage.getItem('bodyScannerImage')
+      if (stored) setImage(stored)
+      sessionStorage.removeItem('bodyScannerFromCamera')
+    } else {
+      sessionStorage.removeItem('bodyScannerImage')
     }
   }, [])
 
   const setImageWithStorage = useCallback((dataUrl: string | null) => {
     if (dataUrl) {
       sessionStorage.setItem('bodyScannerImage', dataUrl)
+      sessionStorage.setItem('bodyScannerFromCamera', 'true')
     } else {
       sessionStorage.removeItem('bodyScannerImage')
+      sessionStorage.removeItem('bodyScannerFromCamera')
     }
     setImage(dataUrl)
   }, [])
