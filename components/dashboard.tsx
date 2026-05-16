@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
+import { TodayWorkoutCard } from '@/components/today-workout-card'
+import { WorkoutPlannerForm } from '@/components/workout-planner-form'
 
 interface Profile {
   id: string
@@ -80,6 +82,7 @@ export function Dashboard() {
   const [weekCount, setWeekCount] = useState(0)
   const [weekLabel, setWeekLabel] = useState('')
   const [bodyScan, setBodyScan] = useState<BodyScan | null>(null)
+  const [showPlanner, setShowPlanner] = useState(false)
   // compute displayName with fallbacks
   const displayName = profile?.name ||
     user?.user_metadata?.full_name ||
@@ -326,6 +329,11 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
+      <TodayWorkoutCard
+        userId={user?.id ?? ''}
+        onCreatePlan={() => setShowPlanner(true)}
+      />
+
       {/* Quick Stats */}
       <div className='mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4'>
         <StatCard
@@ -529,6 +537,20 @@ export function Dashboard() {
 
         </TabsContent>
       </Tabs>
+
+      {showPlanner && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0a0a0a] border border-white/10">
+            <WorkoutPlannerForm
+              userId={user?.id ?? ''}
+              existingBodyFat={bodyScan?.body_fat_percent}
+              onComplete={() => {
+                setShowPlanner(false)
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
