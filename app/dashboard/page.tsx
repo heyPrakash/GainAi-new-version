@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { Dashboard } from "@/components/dashboard"
+import { BottomNav } from "@/components/bottom-nav"
 
 export default function DashboardPage() {
   return (
@@ -8,6 +9,7 @@ export default function DashboardPage() {
       <main className="flex-1">
         <Dashboard />
       </main>
+      <BottomNav />
     </div>
   )
 }
