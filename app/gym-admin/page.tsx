@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from '@/components/ui/textarea'
 import { 
   LayoutDashboard, Users, Settings, LogOut, Copy, QrCode, Download, 
-  Plus, Trash2, Shield, Menu, X, Eye, EyeOff
+  Plus, Trash2, Shield, Menu, X, Eye, EyeOff, Chrome
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -219,6 +219,25 @@ export default function GymAdminPage() {
       setAuthError(error.message || 'Login failed')
       toast.error(error.message || 'Login failed')
     } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? window.location.origin + '/gym-admin' : undefined,
+        },
+      })
+      if (error) throw error
+    } catch (error: any) {
+      setAuthError(error.message || 'Google sign-in failed')
+      toast.error(error.message || 'Google sign-in failed')
       setAuthLoading(false)
     }
   }
@@ -477,6 +496,22 @@ export default function GymAdminPage() {
               </TabsList>
 
               <TabsContent value="login" className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={authLoading}
+                  className="w-full border-2 border-foreground bg-background text-foreground hover:bg-muted rounded-xl font-semibold flex items-center justify-center gap-2"
+                >
+                  <Chrome className="h-5 w-5" />
+                  Continue with Google
+                </Button>
+
+                <div className="relative flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="text-xs text-muted-foreground px-2">Or</span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
+
                 <form onSubmit={handleLogin} className="space-y-4">
                   <Input
                     type="email"
@@ -509,6 +544,22 @@ export default function GymAdminPage() {
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={authLoading}
+                  className="w-full border-2 border-foreground bg-background text-foreground hover:bg-muted rounded-xl font-semibold flex items-center justify-center gap-2"
+                >
+                  <Chrome className="h-5 w-5" />
+                  Continue with Google
+                </Button>
+
+                <div className="relative flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="text-xs text-muted-foreground px-2">Or</span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
+
                 <form onSubmit={handleSignup} className="space-y-4">
                   {signupStep === 1 && (
                     <>
