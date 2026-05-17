@@ -15,9 +15,9 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
   const protectedRoutes = ['/dashboard', '/food-scanner', '/body-scanner']
   const authRoutes = ['/login', '/signup', '/']
+  const gymAdminRoutes = ['/gym-admin', '/join']
   const isProtectedRoute = protectedRoutes.some(route => pathname?.startsWith(route))
-  const isAuthRoute = authRoutes.includes(pathname ?? '')
-
+  const isGymRoute = gymAdminRoutes.some(route => pathname?.startsWith(route))
   useEffect(() => {
     // Wait for auth to finish loading before doing anything
     if (loading) return
@@ -27,10 +27,10 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       return
     }
 
-    if (user && isAuthRoute) {
-      router.replace('/dashboard')
-      return
-    }
+if (user && isAuthRoute && !isGymRoute) {
+  router.replace('/dashboard')
+  return
+}
   }, [user, loading, pathname])
 
   // Show nothing while auth is loading — this prevents the flash
