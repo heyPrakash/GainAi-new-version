@@ -871,7 +871,7 @@ function EditProfileTab({
                       key={dayAbbr}
                       className={`flex-shrink-0 px-2 py-2 rounded-xl text-xs text-center min-w-[48px] ${
                         workoutDay
-                          ? 'bg-[#00ff88]/10 border border-[#00ff88]/30 text-[#00ff88]'
+                          ? 'bg-[#00ff88]/20 border border-[#00ff88]/50 text-[#00cc6a]'
                           : 'bg-muted text-muted-foreground'
                       }`}
                     >
