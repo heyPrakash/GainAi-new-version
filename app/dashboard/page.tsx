@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { Dashboard } from "@/components/dashboard"
 import { BottomNav } from "@/components/bottom-nav"
+import { AiChat } from "@/components/ai-chat"
 
 export default function DashboardPage() {
   return (
@@ -10,6 +11,7 @@ export default function DashboardPage() {
         <Dashboard />
       </main>
       <BottomNav />
+      <AiChat />
     </div>
   )
 }
