@@ -9,29 +9,31 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const protectedRoutes = ['/dashboard', '/food-scanner', '/body-scanner']
-  const authRoutes = ['/login', '/signup', '/']
-  const gymAdminRoutes = ['/gym-admin', '/join']
+  const memberProtectedRoutes = ['/dashboard', '/food-scanner', '/body-scanner']
+  const memberAuthRoutes = ['/']
+  const gymRoutes = ['/gym-admin', '/join']
 
-  const isProtectedRoute = protectedRoutes.some(route => pathname?.startsWith(route))
-  const isAuthRoute = authRoutes.includes(pathname ?? '')
-  const isGymRoute = gymAdminRoutes.some(route => pathname?.startsWith(route))
+  const isMemberProtectedRoute = memberProtectedRoutes.some(r => pathname?.startsWith(r))
+  const isMemberAuthRoute = memberAuthRoutes.includes(pathname ?? '')
+  const isGymRoute = gymRoutes.some(r => pathname?.startsWith(r))
 
   useEffect(() => {
     if (loading) return
-
-    if (!user && isProtectedRoute) {
+    // Gym routes handle their own auth — never redirect from here
+    if (isGymRoute) return
+    // Member not logged in trying to access protected route
+    if (!user && isMemberProtectedRoute) {
       router.replace('/')
       return
     }
-
-    if (user && isAuthRoute && !isGymRoute) {
+    // Member logged in on home page — go to dashboard
+    if (user && isMemberAuthRoute) {
       router.replace('/dashboard')
       return
     }
   }, [user, loading, pathname])
 
-  if (loading) {
+  if (loading && !isGymRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
