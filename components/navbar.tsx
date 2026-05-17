@@ -38,7 +38,15 @@ export function Navbar() {
     { href: "/download", label: "Download App" },
   ]
 
-  const linksToShow = user ? authenticatedLinks : publicLinks
+  const homePageLinks = [
+    { href: "/", label: "Home" },
+    { href: "/gym-admin", label: "Gym Admin" },
+    { href: "/food-scanner", label: "Food Scanner" },
+    { href: "/body-scanner", label: "Body Scanner" },
+    { href: "/download", label: "Download App" },
+  ]
+
+  const linksToShow = pathname === "/" && !user ? homePageLinks : user ? authenticatedLinks : publicLinks
 
   useEffect(() => {
     setMounted(true)
