@@ -224,7 +224,7 @@ export function TodayWorkoutCard({ userId, onCreatePlan }: Props) {
         </Card>
 
         {showExerciseModal && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center sm:justify-center">
+          <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-end sm:items-center sm:justify-center">
             <div className="w-full sm:w-full sm:max-w-lg bg-background border-t sm:border border-border rounded-none sm:rounded-2xl p-4 sm:p-6 max-h-screen sm:max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <div>
