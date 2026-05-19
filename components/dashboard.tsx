@@ -306,7 +306,7 @@ export function Dashboard() {
             {"Here's your fitness overview"}
           </p>
         </div>
-      </div>
+      
 
       {/* Streak Banner - Compact Single Row */}
       <div className='flex items-center gap-2 px-1 py-2 mb-4'>
