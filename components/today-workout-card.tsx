@@ -266,10 +266,10 @@ export function TodayWorkoutCard({ userId, onCreatePlan }: Props) {
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/(^-|-$)/g, '')
-            window.open(`https://musclewiki.com/exercise/${slug}`, '_blank')
+            window.open(`https://www.youtube.com/results?search_query=how+to+do+${encodeURIComponent(cleanName(exercise.name))}`, '_blank')
           }}
           className="text-muted-foreground hover:text-primary transition-colors"
-          title="View on MuscleWiki"
+          title="View on youtube"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/>
