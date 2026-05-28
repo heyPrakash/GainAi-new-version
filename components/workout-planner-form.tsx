@@ -162,7 +162,7 @@ Return exactly this JSON structure and nothing else:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 4000 },
+        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
       }),
     })
 
