@@ -15,14 +15,19 @@ interface ProfileFormData {
   gender: string
 }
 
-const calculateGoals = (
+  const calculateGoals = (
   age: number,
   weight: number,
   height: number,
-  goal: string
+  goal: string,
+  gender: string  // ← add this
 ) => {
-  const bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
+  // Male: +5, Female: -161, Other: use female formula to be safe
+  const bmrConstant = gender === 'Male' ? 5 : -161
+  const bmr = (10 * weight) + (6.25 * height) - (5 * age) + bmrConstant
   const tdee = Math.round(bmr * 1.55)
+  // ... rest stays the same
+}
 
   let calories: number
   if (goal === 'lose') {
@@ -74,12 +79,12 @@ export function ProfileSetup() {
       const heightInCm = parseFloat(height)
 
       const goals = calculateGoals(
-        formData.age,
-        formData.weight,
-        heightInCm,
-        formData.goal
-      )
-
+  formData.age,
+  formData.weight,
+  heightInCm,
+  formData.goal,
+  formData.gender  // ← add this
+)
       const { error: err } = await supabase
         .from('profiles')
         .upsert({
