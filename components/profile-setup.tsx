@@ -20,14 +20,11 @@ interface ProfileFormData {
   weight: number,
   height: number,
   goal: string,
-  gender: string  // ← add this
+  gender: string
 ) => {
-  // Male: +5, Female: -161, Other: use female formula to be safe
   const bmrConstant = gender === 'Male' ? 5 : -161
   const bmr = (10 * weight) + (6.25 * height) - (5 * age) + bmrConstant
   const tdee = Math.round(bmr * 1.55)
-  // ... rest stays the same
-}
 
   let calories: number
   if (goal === 'lose') {
