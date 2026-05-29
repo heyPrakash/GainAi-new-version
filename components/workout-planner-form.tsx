@@ -137,7 +137,7 @@ Return exactly this JSON structure and nothing else:
     {
       "day_number": 1,
       "day_name": "string e.g. Monday - Push Day",
-      "focus": "string e.g. Chest, Shoulders, Triceps",
+      "focus": "string, a short 2-3 word display label summarizing the day e.g. 'Push Day', 'Leg Day', 'Pull & Core'. Keep it under 20 characters. The actual exercises will have full detail.",
       "duration_minutes": number,
       "exercises": [
         {
