@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { processImageFile } from "@/lib/image"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/lib/auth-context"
+import { saveFuelScore } from "@/lib/fuel-score"
 
 interface FoodResult {
   name: string
@@ -270,6 +271,48 @@ Health score rules for gym/fitness people (1–10 whole numbers):
 
       const { error } = await supabase.from('food_scans').insert(insertObj)
       if (error) throw error
+      
+      // Fetch updated today's scans and save fuel score
+      const istDateKey = (iso: string) =>
+        new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(new Date(iso))
+      
+      const getTodayIST = () => {
+        const now = new Date()
+        const istDate = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(now)
+        const istMidnightUTC = new Date(`${istDate}T00:00:00+05:30`)
+        return istMidnightUTC.toISOString()
+      }
+      
+      const { data: todayData } = await supabase
+        .from('food_scans')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('scanned_at', getTodayIST())
+        .order('scanned_at', { ascending: false })
+      
+      const todayScans = todayData || []
+      
+      // Fetch user profile for goals
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, calorie_goal, protein_goal, carbs_goal, fat_goal')
+        .eq('id', user.id)
+        .single()
+      
+      if (profileData) {
+        await saveFuelScore(user.id, profileData, todayScans)
+      }
+      
       setSaveMessage('✅ Saved to Dashboard!')
       router.refresh()
     } catch (err) {

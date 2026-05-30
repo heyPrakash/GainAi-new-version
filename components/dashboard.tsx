@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Activity, ScanLine, TrendingUp, Flame, Target, Calendar, Loader as Loader2, User, Dumbbell } from 'lucide-react'
+import { Activity, TrendingUp, Flame, Target, Calendar, Loader as Loader2, User, Dumbbell, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { TodayWorkoutCard } from '@/components/today-workout-card'
 import { WorkoutPlannerForm } from '@/components/workout-planner-form'
+import { FuelScoreCard } from '@/components/fuel-score-card'
 
 interface Profile {
   id: string
@@ -108,6 +109,8 @@ export function Dashboard() {
     return Math.round(s)
   }
   const [todayStats, setTodayStats] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 })
+  const [todayFuelScore, setTodayFuelScore] = useState<number | null>(null)
+  const [yesterdayFuelScore, setYesterdayFuelScore] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -223,6 +226,30 @@ export function Dashboard() {
         
         if (planError) console.error('Workout plan error:', planError)
         setHasWorkoutPlan(planData && planData.length > 0)
+
+        // Fetch fuel scores for today and yesterday
+        const istDateKey = (iso: string) =>
+          new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).format(new Date(iso))
+
+        const todayDate = istDateKey(new Date().toISOString())
+        const yesterdayDate = istDateKey(new Date(Date.now() - 86400000).toISOString())
+
+        const { data: fuelData, error: fuelError } = await supabase
+          .from('fuel_scores')
+          .select('score_date, fuel_score')
+          .eq('user_id', user.id)
+          .in('score_date', [todayDate, yesterdayDate])
+
+        if (fuelError) console.error('Fuel scores error:', fuelError)
+        const todayFuel = fuelData?.find((r) => r.score_date === todayDate)?.fuel_score ?? null
+        const yesterdayFuel = fuelData?.find((r) => r.score_date === yesterdayDate)?.fuel_score ?? null
+        setTodayFuelScore(todayFuel)
+        setYesterdayFuelScore(yesterdayFuel)
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -355,11 +382,10 @@ export function Dashboard() {
           subtitle={`of ${profile.protein_goal}g goal`}
           progress={proteinPercent}
         />
-        <StatCard
-          icon={ScanLine}
-          label='Food Scans'
-          value={weekCount.toString()}
-          subtitle='this week'
+        <FuelScoreCard
+          todayScore={todayFuelScore}
+          yesterdayScore={yesterdayFuelScore}
+          hasMealsLogged={todayScans.length > 0}
         />
         <StatCard
           icon={Activity}
